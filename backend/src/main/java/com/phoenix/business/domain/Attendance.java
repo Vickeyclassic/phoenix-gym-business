@@ -1,0 +1,4 @@
+package com.phoenix.business.domain;
+import jakarta.persistence.*; import lombok.*; import java.time.Instant;
+@Entity @Table(name="attendance") @Getter @Setter @NoArgsConstructor
+public class Attendance { @Id @GeneratedValue(strategy=GenerationType.IDENTITY) private Long id; @ManyToOne(optional=false) @JoinColumn(name="member_id") private Member member; @Column(name="checked_in_at",nullable=false) private Instant checkedInAt; @Column(name="checked_out_at") private Instant checkedOutAt; @Enumerated(EnumType.STRING) @Column(nullable=false) private Status status=Status.CHECKED_IN; @Column(nullable=false) private String source="MANUAL"; @ManyToOne @JoinColumn(name="recorded_by") private User recordedBy; @Column(name="created_at",insertable=false,updatable=false) private Instant createdAt; public enum Status {CHECKED_IN,CHECKED_OUT,ADJUSTED} }

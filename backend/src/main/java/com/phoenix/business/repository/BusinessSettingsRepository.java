@@ -1,0 +1,1 @@
+package com.phoenix.business.repository; import com.phoenix.business.domain.BusinessSettings; import org.springframework.data.jpa.repository.JpaRepository; public interface BusinessSettingsRepository extends JpaRepository<BusinessSettings,Long>{}

@@ -1,0 +1,1 @@
+package com.phoenix.business.repository; import com.phoenix.business.domain.RevokedToken; import org.springframework.data.jpa.repository.JpaRepository; public interface RevokedTokenRepository extends JpaRepository<RevokedToken,String>{}

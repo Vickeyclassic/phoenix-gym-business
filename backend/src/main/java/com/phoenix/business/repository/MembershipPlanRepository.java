@@ -1,0 +1,1 @@
+package com.phoenix.business.repository; import com.phoenix.business.domain.MembershipPlan; import org.springframework.data.jpa.repository.JpaRepository; public interface MembershipPlanRepository extends JpaRepository<MembershipPlan,Long>{boolean existsByNameIgnoreCaseAndIdNot(String name,Long id);}
