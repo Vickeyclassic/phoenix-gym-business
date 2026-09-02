@@ -8,8 +8,9 @@ Phoenix Gym Business is the independent Business Edition V2 of Phoenix: a single
 - JWT authentication, persistent logout revocation, rate limiting, BCrypt and strict API authorization
 - Member profiles, plan configuration, renewals, payment snapshots, attendance and activity history
 - Business settings that drive branding, currency, reminders and receipts
-- Management dashboard, audit logs, Excel reports, health checks and production logging
-- Responsive React UI with protected role-aware navigation, loading, empty and error states
+- Management dashboard with real revenue, attendance and membership charts
+- Server-filtered audit logs and five Excel reports: members, payments, attendance, expiring memberships and revenue
+- Responsive React UI with working create/edit/delete/renew/check-in/check-out flows, protected role-aware navigation, loading, empty and error states
 
 ## Architecture
 
@@ -49,7 +50,7 @@ cd backend; mvn test
 cd ../frontend; npm ci; npm run lint; npm run test; npm run build
 ```
 
-CI runs the same gates. See [API.md](API.md), [SECURITY.md](SECURITY.md), [BUSINESS_DEPLOYMENT.md](BUSINESS_DEPLOYMENT.md), and [BACKUP_RESTORE.md](BACKUP_RESTORE.md).
+CI runs the same gates. See [API.md](API.md), [SECURITY.md](SECURITY.md), [BUSINESS_DEPLOYMENT.md](BUSINESS_DEPLOYMENT.md), [BACKUP_RESTORE.md](BACKUP_RESTORE.md), and [V1_TO_BUSINESS_MIGRATION.md](V1_TO_BUSINESS_MIGRATION.md).
 
 ## Screenshots
 
@@ -57,7 +58,7 @@ Place verified production screenshots under `docs/screenshots`: login, dashboard
 
 ## Migration from V1
 
-V2 is not an in-place rewrite. Export V1 data, test import mappings in a disposable database, normalize plan names to `membership_plans`, preserve payment amount/period snapshots, then validate record counts before cutover. V1 remains deployed and unchanged. Legacy installations should baseline Flyway at version 0 only after a reviewed schema comparison.
+V2 is not an in-place rewrite. The manual, rollback-first staging importer preserves legacy identifiers and financial history without copying credentials. Follow [V1_TO_BUSINESS_MIGRATION.md](V1_TO_BUSINESS_MIGRATION.md). V1 remains deployed and unchanged.
 
 ## Production considerations
 
