@@ -1,0 +1,1 @@
+import {describe,expect,it} from 'vitest';import {message} from './api';describe('API error messages',()=>{it('uses safe server message',()=>expect(message({response:{data:{message:'Validation failed'}}})).toBe('Validation failed'));it('falls back safely',()=>expect(message({})).toBe('Something went wrong'));});
