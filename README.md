@@ -1,0 +1,64 @@
+# Phoenix Gym Business
+
+Phoenix Gym Business is the independent Business Edition V2 of Phoenix: a single-gym operations platform for owners, administrators and staff. It is a separate clean repository and does not modify the feature-frozen V1 project.
+
+## Features
+
+- OWNER, ADMIN and STAFF accounts with active state, role changes, forced password reset and last login
+- JWT authentication, persistent logout revocation, rate limiting, BCrypt and strict API authorization
+- Member profiles, plan configuration, renewals, payment snapshots, attendance and activity history
+- Business settings that drive branding, currency, reminders and receipts
+- Management dashboard, audit logs, Excel reports, health checks and production logging
+- Responsive React UI with protected role-aware navigation, loading, empty and error states
+
+## Architecture
+
+`React/Vite -> Axios/JWT -> Spring Security -> REST services -> JPA/Flyway -> MySQL 8`
+
+The backend is Java 21/Spring Boot. The frontend is React/Vite. Flyway owns all schema changes; Hibernate only validates in production.
+
+## Local setup
+
+Requirements: Java 21, Maven 3.9+, Node 22+, and MySQL 8. Copy `.env.example` to `.env` and replace every placeholder.
+
+```powershell
+cd backend
+$env:DB_URL='jdbc:mysql://localhost:3306/phoenix_business?serverTimezone=UTC'
+$env:DB_USERNAME='root'
+$env:DB_PASSWORD='your-local-password'
+$env:JWT_SECRET='a-random-secret-with-at-least-32-characters'
+$env:BOOTSTRAP_OWNER_PASSWORD='StrongOwner1Password'
+mvn spring-boot:run
+```
+
+In another terminal:
+
+```powershell
+cd frontend
+$env:VITE_API_URL='http://localhost:8080/api'
+npm install
+npm run dev
+```
+
+Or set the `.env` values and run `docker compose up --build`. The first start creates an OWNER only when the user table is empty; that owner must change the bootstrap password.
+
+## Testing
+
+```powershell
+cd backend; mvn test
+cd ../frontend; npm ci; npm run lint; npm run test; npm run build
+```
+
+CI runs the same gates. See [API.md](API.md), [SECURITY.md](SECURITY.md), [BUSINESS_DEPLOYMENT.md](BUSINESS_DEPLOYMENT.md), and [BACKUP_RESTORE.md](BACKUP_RESTORE.md).
+
+## Screenshots
+
+Place verified production screenshots under `docs/screenshots`: login, dashboard, members, member profile, attendance, reports, staff, audit and settings.
+
+## Migration from V1
+
+V2 is not an in-place rewrite. Export V1 data, test import mappings in a disposable database, normalize plan names to `membership_plans`, preserve payment amount/period snapshots, then validate record counts before cutover. V1 remains deployed and unchanged. Legacy installations should baseline Flyway at version 0 only after a reviewed schema comparison.
+
+## Production considerations
+
+Use an always-on backend and paid managed MySQL with automated backups. Free sleeping services are unsuitable for commercial operations. Configure HTTPS, exact CORS origins, uptime alerts and restoration drills before admitting real customer data.
