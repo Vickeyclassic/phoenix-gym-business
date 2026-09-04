@@ -9,6 +9,7 @@ services:
     healthcheck: {test: ["CMD","mysqladmin","ping","-h","localhost"], interval: 10s, timeout: 5s, retries: 10}
   backend:
     build: ./backend
+    restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: prod
       DB_URL: jdbc:mysql://mysql:3306/phoenix_business?serverTimezone=UTC
