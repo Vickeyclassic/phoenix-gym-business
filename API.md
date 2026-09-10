@@ -1,6 +1,6 @@
 # API summary
 
-All `/api` endpoints except `POST /auth/login` require `Authorization: Bearer <access token>`. Health is public at `/actuator/health`.
+All `/api` endpoints except `POST /auth/login` and the public branding reads below require `Authorization: Bearer <access token>`. Health is public at `/actuator/health`.
 
 | Area | Endpoints | Access |
 |---|---|---|
@@ -15,3 +15,20 @@ All `/api` endpoints except `POST /auth/login` require `Authorization: Bearer <a
 | Reports | `GET /reports/{members,payments,attendance,expiring,revenue}.xlsx` with relevant date/status/method/member filters | ADMIN/OWNER |
 
 Validation errors use `{timestamp,status,message,path,fieldErrors}`. Pagination uses Spring `page`, `size` and `sort` parameters.
+
+## Public business branding
+
+`GET /api/public/branding` returns only `{ "gymName": "...", "logoUrl": "..." }`
+from Business Settings. Login may read this without authentication. Other settings
+remain authenticated; settings writes retain OWNER/ADMIN authorization.
+
+For a local logo shared by the UI and PDF receipts, set `APP_BRANDING_DIRECTORY`
+to an operator-managed asset directory, then set the existing `logoUrl` setting to
+`/api/public/branding-assets/<filename>`. The public asset endpoint accepts only
+simple JPEG/PNG filenames under 2 MB and rejects traversal and symlinks outside
+that directory. It exposes only branding assets, so keep private files elsewhere.
+
+Browser branding also supports HTTP(S) URLs. Receipts only read local assets and
+never fetch remote URLs. A missing or unreadable optional logo does not prevent
+receipt generation. Changing Business Settings refreshes the current browser's
+identity and title immediately; other open sessions pick it up on page reload.
