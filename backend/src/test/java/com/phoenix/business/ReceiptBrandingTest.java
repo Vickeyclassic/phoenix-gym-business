@@ -32,14 +32,15 @@ class ReceiptBrandingTest {
         payment.setMember(member); payment.setReceivedBy(user); payment.setReceiptNumber("TEST-R1");
         payment.setPlanNameSnapshot("Monthly"); payment.setPeriodStart(LocalDate.now());
         payment.setPeriodEnd(LocalDate.now().plusMonths(1)); payment.setAmount(BigDecimal.TEN);
-        payment.setMethod(Payment.Method.CASH); payment.setPaymentDate(Instant.now());
+        payment.setMethod(Payment.Method.CASH); payment.setPaymentDate(Instant.parse("2026-09-15T18:30:00Z"));
         PaymentRepository payments = mock(PaymentRepository.class);
         BusinessSettingsRepository settings = mock(BusinessSettingsRepository.class);
         when(payments.findById(1L)).thenReturn(Optional.of(payment));
         when(settings.findById(1L)).thenReturn(Optional.of(s));
-        ReceiptService receipts = new ReceiptService(new BrandingAssets(directory.toString()), payments, settings);
+        ReceiptService receipts = new ReceiptService(new BrandingAssets(directory.toString()), new BusinessTimeService(settings), payments, settings);
         try (PdfReader reader = new PdfReader(receipts.create(1L))) {
             assertEquals(1, reader.getNumberOfPages());
+            assertTrue(new PdfTextExtractor(reader).getTextFromPage(1).contains("16 Sep 2026, 12:00 AM IST (UTC+05:30)"));
             assertTrue(new PdfTextExtractor(reader).getTextFromPage(1).contains("Example Client Gym"));
             assertNotNull(reader.getPageN(1).getAsDict(PdfName.RESOURCES).getAsDict(PdfName.XOBJECT));
         }

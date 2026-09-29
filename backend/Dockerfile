@@ -6,6 +6,7 @@ COPY src src
 RUN mvn -q -DskipTests package
 FROM eclipse-temurin:21-jre-alpine
 RUN addgroup -S phoenix && adduser -S phoenix -G phoenix
+RUN mkdir -p /branding && chown phoenix:phoenix /branding
 USER phoenix
 COPY --from=build /app/target/*.jar /app/app.jar
 EXPOSE 8080

@@ -28,7 +28,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.UUID;
 
 @RestController
@@ -38,9 +37,10 @@ public class PaymentController {
     private final PaymentService service;
     private final PaymentRepository repo;
     private final ReceiptService receipts;
+    private final com.phoenix.business.service.BusinessTimeService businessTime;
 
     record Renewal(@NotNull Long memberId, @NotNull Long planId, @NotNull Payment.Method method,
-                   String referenceNote, BigDecimal amount) {
+                   String referenceNote, @jakarta.validation.constraints.DecimalMin("0") BigDecimal amount) {
     }
 
     @PostMapping("/renew")
@@ -55,9 +55,9 @@ public class PaymentController {
                                       @RequestParam(required = false) Long memberId,
                                       @PageableDefault(size = 20, sort = "paymentDate", direction = Sort.Direction.DESC)
                                       Pageable p) {
-        ZoneId zone = ZoneOffset.UTC;
+        ZoneId zone = businessTime.zone();
         Instant start = (from == null ? LocalDate.of(2000, 1, 1) : from).atStartOfDay(zone).toInstant();
-        Instant end = (to == null ? LocalDate.now().plusDays(1) : to.plusDays(1)).atStartOfDay(zone).toInstant();
+        Instant end = (to == null ? businessTime.today().plusDays(1) : to.plusDays(1)).atStartOfDay(zone).toInstant();
         return repo.filter(start, end, method, memberId, p).map(PaymentResponse::from);
     }
 
@@ -77,20 +77,22 @@ class PaymentService {
     private final MembershipPlanRepository plans;
     private final UserRepository users;
     private final AuditService audit;
+    private final com.phoenix.business.service.BusinessTimeService businessTime;
 
     @Transactional
     PaymentResponse renew(PaymentController.Renewal q, String username) {
-        Member member = members.findById(q.memberId()).orElseThrow();
+        Member member = members.findLockedById(q.memberId()).orElseThrow();
+        if (member.isArchived()) throw new IllegalArgumentException("Restore this member before renewing");
         MembershipPlan plan = plans.findById(q.planId()).filter(MembershipPlan::isActive).orElseThrow();
         User user = users.findByUsernameIgnoreCase(username).orElseThrow();
-        LocalDate today = LocalDate.now();
-        LocalDate start = member.getExpiryDate() != null && member.getExpiryDate().isAfter(today)
+        LocalDate today = businessTime.today();
+        LocalDate start = member.getExpiryDate() != null && !member.getExpiryDate().isBefore(today)
                 ? member.getExpiryDate().plusDays(1)
                 : today;
         LocalDate end = start.plusMonths(plan.getDurationMonths()).minusDays(1);
 
         Payment payment = new Payment();
-        payment.setReceiptNumber("PHX-" + LocalDate.now().getYear() + "-"
+        payment.setReceiptNumber("PHX-" + businessTime.today().getYear() + "-"
                 + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         payment.setMember(member);
         payment.setPlan(plan);

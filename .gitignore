@@ -10,3 +10,8 @@ target/
 .vscode/
 .DS_Store
 Thumbs.db
+backups/
+
+# Runtime uploads and local build metadata
+clients/*/branding/logo-*
+*.tsbuildinfo

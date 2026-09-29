@@ -57,6 +57,7 @@ class AttendanceResponseIntegrationTest {
     @BeforeEach
     void setUp() {
         owner = users.findByUsernameIgnoreCase("owner").orElseThrow();
+        owner.setForcePasswordChange(false); users.save(owner);
         if (users.findByUsernameIgnoreCase("attendance-staff").isEmpty()) {
             User staff = new User();
             staff.setUsername("attendance-staff");
@@ -129,6 +130,22 @@ class AttendanceResponseIntegrationTest {
                 .andExpect(jsonPath("$.status").value("CHECKED_OUT"))
                 .andReturn().getResponse().getContentAsString();
         assertSafeAttendance(json.readTree(checkOutBody));
+    }
+
+    @Test
+    void openStatePreventsDuplicateAndInvalidAttendanceActions() throws Exception {
+        mvc.perform(auth(get("/api/attendance/open/" + member.getId()), "attendance-staff", "StrongPass1"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.open").value(false));
+        mvc.perform(auth(post("/api/attendance/check-in/" + member.getId()), "attendance-staff", "StrongPass1"))
+                .andExpect(status().isOk());
+        mvc.perform(auth(get("/api/attendance/open/" + member.getId()), "attendance-staff", "StrongPass1"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.open").value(true));
+        mvc.perform(auth(post("/api/attendance/check-in/" + member.getId()), "attendance-staff", "StrongPass1"))
+                .andExpect(status().isUnprocessableEntity());
+        mvc.perform(auth(post("/api/attendance/check-out/" + member.getId()), "attendance-staff", "StrongPass1"))
+                .andExpect(status().isOk());
+        mvc.perform(auth(post("/api/attendance/check-out/" + member.getId()), "attendance-staff", "StrongPass1"))
+                .andExpect(status().isUnprocessableEntity());
     }
 
     @Test

@@ -1,0 +1,89 @@
+# Standalone Phoenix Business production stack. Do not merge with local Compose files.
+name: phoenix-business-production
+x-logging: &logging
+  driver: json-file
+  options: {max-size: '10m', max-file: '3'}
+services:
+  mysql:
+    image: ${MYSQL_IMAGE:-mysql:8.4}
+    restart: unless-stopped
+    mem_limit: 640m
+    command: ['--innodb-buffer-pool-size=128M', '--max-connections=40']
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:?Set database name}
+      MYSQL_USER: ${DB_USERNAME:?Set non-root database username}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Set fresh application database password}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set separate fresh root password}
+    volumes: [mysql_data:/var/lib/mysql]
+    networks: [database]
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', '127.0.0.1']
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    logging: *logging
+  backend:
+    image: phoenix-business-backend:${RELEASE_TAG:?Set release tag}
+    build:
+      context: ../../backend
+    restart: unless-stopped
+    mem_limit: 768m
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: ${DB_URL:?Set production JDBC URL}
+      DB_USERNAME: ${DB_USERNAME:?Set non-root database username}
+      DB_PASSWORD: ${DB_PASSWORD:?Set fresh application database password}
+      DB_POOL_SIZE: ${DB_POOL_SIZE:-5}
+      JWT_SECRET: ${JWT_SECRET:?Set fresh random JWT secret}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-900000}
+      BOOTSTRAP_OWNER_USERNAME: ${BOOTSTRAP_OWNER_USERNAME:?Set client owner username}
+      BOOTSTRAP_OWNER_PASSWORD: ${BOOTSTRAP_OWNER_PASSWORD:-}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?Set exact deployed frontend origin}
+      APP_BRANDING_DIRECTORY: /branding
+    # Overrides the image's 75% heap default, preserving native-memory headroom.
+    entrypoint: ['java', '-Xms128m', '-Xmx384m', '-jar', '/app/app.jar']
+    volumes: [branding_data:/branding]
+    networks: [web, database]
+    depends_on: {mysql: {condition: service_healthy}}
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '--spider', 'http://127.0.0.1:8080/actuator/health']
+      interval: 30s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
+    logging: *logging
+  frontend:
+    image: phoenix-business-frontend:${RELEASE_TAG:?Set release tag}
+    build:
+      context: ../../frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:?Set frontend production API URL}
+    restart: unless-stopped
+    mem_limit: 96m
+    networks: [web]
+    logging: *logging
+  proxy:
+    image: ${CADDY_IMAGE:-caddy:2-alpine}
+    restart: unless-stopped
+    mem_limit: 96m
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:?Set production hostname without scheme}
+    ports: ['80:80', '443:443']
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [web]
+    depends_on:
+      backend: {condition: service_healthy}
+      frontend: {condition: service_started}
+    logging: *logging
+networks:
+  web: {}
+  database: {internal: true}
+volumes:
+  mysql_data: {}
+  branding_data: {}
+  caddy_data: {}
+  caddy_config: {}

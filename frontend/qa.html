@@ -1,0 +1,19 @@
+<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><script src="/theme-init.js"></script></head><body><div id="root"></div><script type="module">
+import {api} from '/src/api.js';
+const user={displayName:'Preview owner',role:'OWNER'};
+const member={id:1,memberCode:'DEMO-1',name:'Sample member',status:'ACTIVE',phone:'',email:'',expiryDate:'2026-12-31'};
+const payment={id:1,receiptNumber:'DEMO-001',planNameSnapshot:'Monthly',amount:1200,method:'CASH',status:'PAID',paymentDate:'2026-09-12'};
+const plan={id:1,name:'Monthly',price:1200,durationMonths:1,active:true};
+sessionStorage.setItem('phoenixToken','local-preview-only');
+api.defaults.adapter=async config=>{const url=config.url;let data={};
+if(url==='/auth/me')data=user;
+else if(url==='/public/branding'||url==='/settings')data={gymName:'B.G. Fitness',currency:'INR',timeZone:'Asia/Kolkata'};
+else if(url.includes('/profile'))data={member,payments:[payment],recentAttendance:[{checkedInAt:'2026-09-12 08:00',source:'MANUAL'}]};
+else if(url.startsWith('/members'))data={content:[member],number:0,totalElements:1,totalPages:1,last:true};
+else if(url==='/plans')data=[plan];
+else if(url==='/users')data=[{id:1,username:'preview',displayName:'Preview owner',role:'OWNER',active:true}];
+else if(url==='/dashboard')data={totalMembers:1,activeMembers:1,recentPayments:[payment],monthlyRevenue:[{label:'Sep',value:1200}]};
+else data={content:url.startsWith('/payments')?[payment]:url.startsWith('/attendance')?[{id:1,member,checkedInAt:'2026-09-12 08:00',status:'CHECKED_IN',source:'MANUAL'}]:[],number:0,totalElements:1,totalPages:1,last:true};
+return {data,status:200,statusText:'OK',headers:{},config};};
+await import('/src/main.jsx');
+</script></body></html>
