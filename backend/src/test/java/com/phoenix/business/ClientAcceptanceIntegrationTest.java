@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 @SpringBootTest(properties={"spring.datasource.url=jdbc:h2:mem:client-security;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE",
- "app.bootstrap-business-name=B.G. Fitness", "app.bootstrap-logo-url=/api/public/branding-assets/bg-fitness.jpg"})
+ "app.bootstrap-business-name=Demo Fitness", "app.bootstrap-logo-url=/api/public/branding-assets/demo-fitness.jpg"})
 @AutoConfigureMockMvc @ActiveProfiles("test")
 class ClientAcceptanceIntegrationTest {
  @Autowired MockMvc mvc; @Autowired ObjectMapper json; @Autowired UserRepository users;
@@ -36,7 +36,7 @@ class ClientAcceptanceIntegrationTest {
   for(String p:List.of("dashboard","members","plans","payments","attendance","users","audit-logs","settings","reports/members.xlsx"))
    mvc.perform(get("/api/"+p).header("Authorization","Bearer "+t)).andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("PASSWORD_CHANGE_REQUIRED"));
   mvc.perform(post("/api/members").header("Authorization","Bearer "+t).contentType(MediaType.APPLICATION_JSON).content("{}")).andExpect(status().isForbidden());
-  mvc.perform(get("/api/public/branding")).andExpect(status().isOk()).andExpect(jsonPath("$.gymName").value("B.G. Fitness"));
+  mvc.perform(get("/api/public/branding")).andExpect(status().isOk()).andExpect(jsonPath("$.gymName").value("Demo Fitness"));
   change(t,INITIAL,CHANGED);assertFalse(users.findByUsernameIgnoreCase("owner").orElseThrow().isForcePasswordChange());
   assertTrue(encoder.matches(CHANGED,users.findByUsernameIgnoreCase("owner").orElseThrow().getPasswordHash()));
   mvc.perform(get("/api/dashboard").header("Authorization","Bearer "+t)).andExpect(status().isOk()).andExpect(jsonPath("$.totalMembers").isNumber());
@@ -86,10 +86,10 @@ class ClientAcceptanceIntegrationTest {
   mvc.perform(get("/api/payments?memberId="+mid).header("Authorization","Bearer "+t)).andExpect(jsonPath("$.totalElements").value(1));
   mvc.perform(get("/api/attendance?memberId="+mid).header("Authorization","Bearer "+t)).andExpect(jsonPath("$.totalElements").value(1));
   byte[] pdf=mvc.perform(get("/api/payments/"+pay+"/receipt.pdf").header("Authorization","Bearer "+t)).andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray();
-  try(var reader=new com.lowagie.text.pdf.PdfReader(pdf)){assertTrue(new com.lowagie.text.pdf.parser.PdfTextExtractor(reader).getTextFromPage(1).contains("B.G. Fitness"));}
+  try(var reader=new com.lowagie.text.pdf.PdfReader(pdf)){assertTrue(new com.lowagie.text.pdf.parser.PdfTextExtractor(reader).getTextFromPage(1).contains("Demo Fitness"));}
   for(String report:List.of("members","payments","attendance","expiring","revenue")){
    byte[] bytes=mvc.perform(get("/api/reports/"+report+".xlsx").header("Authorization","Bearer "+t)).andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray();
-   try(var book=new org.apache.poi.xssf.usermodel.XSSFWorkbook(new java.io.ByteArrayInputStream(bytes))){assertEquals("B.G. Fitness",book.getSheetAt(0).getRow(0).getCell(0).getStringCellValue());}
+   try(var book=new org.apache.poi.xssf.usermodel.XSSFWorkbook(new java.io.ByteArrayInputStream(bytes))){assertEquals("Demo Fitness",book.getSheetAt(0).getRow(0).getCell(0).getStringCellValue());}
   }
   mvc.perform(get("/api/audit-logs?action=PAYMENT_CREATED").header("Authorization","Bearer "+t)).andExpect(status().isOk()).andExpect(jsonPath("$.content[0].action").value("PAYMENT_CREATED"));
  }

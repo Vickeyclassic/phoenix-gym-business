@@ -1,6 +1,8 @@
 # Phoenix Gym Business
 
-Phoenix Gym Business is the independent Business Edition V2 of Phoenix: a single-gym operations platform for owners, administrators and staff. It is a separate clean repository and does not modify the feature-frozen V1 project.
+Phoenix Gym Business is the interview and portfolio project: a single-gym operations platform for owners, administrators and staff. Run this project at http://localhost:5173 using its own Docker stack and database. It is the maintained Business V2 project, separate from the older Management V1 demo.
+
+B.G. Fitness is maintained in its own `bg-fitness` project and private repository, with independent branding, credentials and database. This portfolio repository contains no B.G. Fitness client bundle.
 
 ## Features
 

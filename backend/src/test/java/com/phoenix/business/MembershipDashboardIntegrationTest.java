@@ -41,7 +41,7 @@ class MembershipDashboardIntegrationTest {
         BusinessSettings business = settings.findById(1L).orElseGet(() -> {
             BusinessSettings created = new BusinessSettings();
             created.setId(1L);
-            created.setGymName("B.G. Fitness");
+            created.setGymName("Demo Fitness");
             return created;
         });
         business.setTimeZone("Asia/Kolkata");

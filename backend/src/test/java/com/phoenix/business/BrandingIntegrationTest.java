@@ -20,12 +20,12 @@ class BrandingIntegrationTest {
 
     @Test void publicBrandingContainsOnlyIdentityAndReflectsSettings() throws Exception {
         BusinessSettings s = new BusinessSettings();
-        s.setGymName("B.G. Fitness");
-        s.setLogoUrl("/api/public/branding-assets/bg-fitness.jpg");
+        s.setGymName("Demo Fitness");
+        s.setLogoUrl("/api/public/branding-assets/demo-fitness.jpg");
         s.setEmail("private@example.com");
         settings.save(s);
         mvc.perform(get("/api/public/branding")).andExpect(status().isOk())
-                .andExpect(jsonPath("$.gymName").value("B.G. Fitness"))
+                .andExpect(jsonPath("$.gymName").value("Demo Fitness"))
                 .andExpect(jsonPath("$.logoUrl").value(s.getLogoUrl()))
                 .andExpect(jsonPath("$.length()").value(2));
         s.setGymName("Another Gym");
