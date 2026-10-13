@@ -1,0 +1,32 @@
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: phoenix_business_demo
+      MYSQL_USER: phoenix
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Run node scripts/demo.mjs}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Run node scripts/demo.mjs}
+    volumes: [demo-mysql:/var/lib/mysql]
+    healthcheck:
+      test: [CMD-SHELL, 'MYSQL_PWD="$$MYSQL_PASSWORD" mysql -u phoenix -D phoenix_business_demo -e "SELECT 1" >/dev/null 2>&1']
+      interval: 5s
+      retries: 30
+  backend:
+    build: ./backend
+    env_file: .demo/env
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:mysql://mysql:3306/phoenix_business_demo?serverTimezone=UTC
+      DB_USERNAME: phoenix
+      CORS_ALLOWED_ORIGINS: http://localhost:5175,http://127.0.0.1:5175
+    ports: ['127.0.0.1:18081:8080']
+    depends_on:
+      mysql: {condition: service_healthy}
+  frontend:
+    build:
+      context: ./frontend
+      args: {VITE_API_URL: 'http://localhost:18081/api'}
+    ports: ['127.0.0.1:5175:80']
+    depends_on: [backend]
+volumes:
+  demo-mysql: {}

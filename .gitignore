@@ -15,3 +15,7 @@ backups/
 # Runtime uploads and local build metadata
 clients/*/branding/logo-*
 *.tsbuildinfo
+
+# Isolated local demo credentials and test temp files
+.demo/
+.test-temp/

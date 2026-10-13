@@ -2,6 +2,18 @@
 
 Phoenix Gym Business is a single-gym operations platform for owners, administrators and staff. Run this project at http://localhost:5173 using its own Docker stack and database. It is the maintained Business V2 project, separate from the older Management V1 demo.
 
+## Try the demo
+
+Run `node scripts/demo.mjs` from this repository with Docker Desktop and Node.js 22+. Open http://localhost:5175 and use the generated local credentials. See [Demo guide](docs/DEMO.md).
+
+## Screenshots
+
+![Application dashboard](docs/screenshots/dashboard.png)
+
+[View screenshot gallery](docs/screenshots/README.md). All records shown are synthetic demo data.
+
+See [Design walkthrough](docs/DESIGN.md) for the key implementation decisions and tradeoffs.
+
 ## Features
 
 - OWNER, ADMIN and STAFF accounts with active state, role changes, forced password reset and last login
@@ -17,6 +29,8 @@ Phoenix Gym Business is a single-gym operations platform for owners, administrat
 `React/Vite -> Axios/JWT -> Spring Security -> REST services -> JPA/Flyway -> MySQL 8`
 
 The backend is Java 21/Spring Boot. The frontend is React/Vite. Flyway owns all schema changes; Hibernate only validates in production.
+
+See [Frontend structure](docs/FRONTEND.md) for page, component and data-hook responsibilities.
 
 ## Local setup
 
